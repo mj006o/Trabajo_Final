@@ -1,15 +1,22 @@
+// Importar librerías
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
+// Variables de sonido
 Minim minim;
 AudioPlayer player;
 
+// Variables de historia
 int acto = 0;  // Acto actual
+
 int escena = 0;  // Escena actual dentro del acto
-float alphaImagen = 0;
-boolean imagenApareciendo = true;
-boolean mostrandoPantallaTitulo = true;
-boolean aplicarFade = true;
+
+float alphaImagen = 0; // Transición fade in, nivel de transparencia de la imagen o texto
+
+boolean mostrandoPantallaTitulo = true; // Mostrar la pantalla del titulo del acto
+
+// Controlar si se debe aplicar el efecto de fade in en esa escena.
+boolean aplicarFade = true; 
 boolean necesitaFade(int acto, int escena) {
   // Lista de escenas que NO deben tener fade in
   return !(
@@ -25,9 +32,10 @@ boolean necesitaFade(int acto, int escena) {
     );
 }
 
-PImage prologoImg, acto1Img, acto2Img, acto3Img, acto4Img;
+// Variables imágenes
+PImage prologoImg, acto1Img, acto2Img, acto3Img, acto4Img, pantallaInicialImg, tituloActo1Img, tituloActo2Img, tituloActo3Img, tituloActo4Img;
 
-PImage pantallaInicialImg, tituloActo1Img, tituloActo2Img, tituloActo3Img, tituloActo4Img;
+// Arreglo de textos de cada escena
 String[][] textos = {
   {  // Prologo
     "En una noche, bajo el resplandor de la luna, el malvado hechicero Rothbart transforma a la princesa Odette en un cisne.\nSolo un juramento de amor eterno puede romper el hechizo.\nLa historia está a punto de comenzar…"
@@ -57,8 +65,9 @@ String[][] textos = {
 };
 
 void setup() {
-  //fullScreen(P3D);
+
   size(1300, 700);
+  
   // Iniciar sonido
   minim = new Minim(this);
 
@@ -77,7 +86,7 @@ void setup() {
 
   mostrandoPantallaTitulo = true;  // Al inicio muestra la pantalla inicial
 
-  //Comienza la música correspondiente al primer acto.
+  // Empieza la música del acto actual
   cambiarMusicaDelActo();
 }
 
@@ -85,16 +94,16 @@ void draw() {
   background(0);
 
   if (mostrandoPantallaTitulo) {
-    // Mostrar imagen de título con transición suave
+    // Mostrar imagen de título con fade in
     PImage tituloImg = getImagenTitulo();
-    tint(255, alphaImagen);
+    tint(255, alphaImagen); // Transparencia
     image(tituloImg, 0, 0, width, height);
 
     if (aplicarFade && alphaImagen < 255) {
       alphaImagen += 2;
     }
   } else {
-    // Mostrar escena normal
+    // Mostrar imagen y texto de escena
     PImage imgActual = getImagenDelActo();
     tint(255, aplicarFade ? alphaImagen : 255);
     image(imgActual, 0, 0, width, height);
@@ -141,6 +150,7 @@ PImage getImagenTitulo() {
   else return tituloActo4Img;
 }
 
+// Muestra el texto en pantalla con fade in
 void mostrarTexto(String texto) {
   fill(0, alphaImagen);
   textSize(20);
@@ -157,12 +167,13 @@ PImage getImagenDelActo() {
   else return acto4Img;
 }
 
+// Reproduce la música correspondiente al acto actual
 void cambiarMusicaDelActo() {
-  if (player != null) player.close();
+  if (player != null) player.close(); // Cierra la música anterior
 
   if (acto == 0) player = minim.loadFile("Swan-Lake-19-No.-10-Moderato.mp3");
   else if (acto == 1) player = minim.loadFile("Swan-Lake-03-No.-2-Valse.mp3");
-  else if (acto == 2) player = minim.loadFile("Swan-Lake-19-No.-10-Moderato.mp3");
+  else if (acto == 2) player = minim.loadFile("Swan-Lake-Act-II-pas-de-deux-.mp3");
   else if (acto == 3) player = minim.loadFile("Swan-Lake-33-No.-18-Scene-_black-swan_.mp3");
   else player = minim.loadFile("Swan-Lake-46-Act-IV-No.-29-Finale.mp3");
 
