@@ -8,9 +8,26 @@ int acto = 0;  // Acto actual
 int escena = 0;  // Escena actual dentro del acto
 float alphaImagen = 0;
 boolean imagenApareciendo = true;
+boolean mostrandoPantallaTitulo = true;
+boolean aplicarFade = true;
+boolean necesitaFade(int acto, int escena) {
+  // Lista de escenas que NO deben tener fade in
+  return !(
+    (acto == 1 && escena == 1) ||  // Escena 2
+    (acto == 2 && escena == 1) ||  // Escena 4
+    (acto == 2 && escena == 2) ||  // Escena 5
+    (acto == 3 && escena == 1) ||  // Escena 7
+    (acto == 3 && escena == 2) ||  // Escena 8
+    (acto == 3 && escena == 3) ||  // Escena 9
+    (acto == 4 && escena == 1) ||  // Escena 11
+    (acto == 4 && escena == 2) ||  // Escena 12
+    (acto == 4 && escena == 3)     // Escena 13
+    );
+}
 
 PImage prologoImg, acto1Img, acto2Img, acto3Img, acto4Img;
 
+PImage pantallaInicialImg, tituloActo1Img, tituloActo2Img, tituloActo3Img, tituloActo4Img;
 String[][] textos = {
   {  // Prologo
     "En una noche, bajo el resplandor de la luna, el malvado hechicero Rothbart transforma a la princesa Odette en un cisne.\nSolo un juramento de amor eterno puede romper el hechizo.\nLa historia está a punto de comenzar…"
@@ -47,47 +64,85 @@ void setup() {
 
   // Cargar imágenes
   prologoImg = loadImage("Prologo mientras.png");
-  acto1Img = loadImage("Act I mientras.png");
-  acto2Img = loadImage("Act II mientras.png");
-  acto3Img = loadImage("Act III mientras.png");
-  acto4Img = loadImage("Act IV mientras.png");
+  acto1Img = loadImage("boceto fondo acto 1.jpg");
+  acto2Img = loadImage("boceto fondo acto 2.jpg");
+  acto3Img = loadImage("boceto fondo acto 3.jpg");
+  acto4Img = loadImage("boceto fondo acto 4.jpg");
 
+  pantallaInicialImg = loadImage("boceto pantalla inicial.jpg");
+  tituloActo1Img = loadImage("boceto fondo acto 1 + titulo.jpg");
+  tituloActo2Img = loadImage("boceto fondo acto 2 + titulo.jpg");
+  tituloActo3Img = loadImage("boceto fondo acto 3 + titulo.jpg");
+  tituloActo4Img = loadImage("boceto fondo acto 4 + titulo.jpg");
+
+  mostrandoPantallaTitulo = true;  // Al inicio muestra la pantalla inicial
+
+  //Comienza la música correspondiente al primer acto.
   cambiarMusicaDelActo();
 }
 
 void draw() {
   background(0);
 
-  // Mostrar imagen según acto
-  PImage imgActual = getImagenDelActo();
-  tint(255, alphaImagen);
-  image(imgActual, 0, 0, width, height);
+  if (mostrandoPantallaTitulo) {
+    // Mostrar imagen de título con transición suave
+    PImage tituloImg = getImagenTitulo();
+    tint(255, alphaImagen);
+    image(tituloImg, 0, 0, width, height);
 
-  // Aparecer imagen suavemente
-  if (imagenApareciendo && alphaImagen < 255) {
-    alphaImagen += 2;
+    if (aplicarFade && alphaImagen < 255) {
+      alphaImagen += 2;
+    }
+  } else {
+    // Mostrar escena normal
+    PImage imgActual = getImagenDelActo();
+    tint(255, aplicarFade ? alphaImagen : 255);
+    image(imgActual, 0, 0, width, height);
+    mostrarTexto(textos[acto][escena]);
+
+    if (aplicarFade && alphaImagen < 255) {
+      alphaImagen += 2;
+    }
   }
-
-  // Mostrar texto de escena
-  mostrarTexto(textos[acto][escena]);
 }
 
 void mousePressed() {
-  escena++;
-  if (escena >= textos[acto].length) {  // Si termina el acto
-    acto++;
-    escena = 0;
-    if (acto > 4) acto = 0;  // Reinicia si pasa el acto IV
-    cambiarMusicaDelActo();
+  if (mostrandoPantallaTitulo) {
+    mostrandoPantallaTitulo = false;
+    alphaImagen = 0;
+    aplicarFade = true;
+    return;
   }
 
-  // Reiniciar alpha para imagen suave
-  alphaImagen = 0;
-  imagenApareciendo = true;
+  // Avanzar escena cuando se hace clic
+  escena++;
+  if (escena >= textos[acto].length) {
+    acto++;
+    escena = 0;
+
+    if (acto > 4) acto = 0;  // Reiniciar si pasa del acto IV
+
+    cambiarMusicaDelActo();
+    mostrandoPantallaTitulo = true;
+    aplicarFade = true;
+    alphaImagen = 0;
+  } else {
+    aplicarFade = necesitaFade(acto, escena);
+    alphaImagen = aplicarFade ? 0 : 255;
+  }
+}
+
+
+PImage getImagenTitulo() {
+  if (acto == 0) return pantallaInicialImg;
+  if (acto == 1) return tituloActo1Img;
+  if (acto == 2) return tituloActo2Img;
+  if (acto == 3) return tituloActo3Img;
+  else return tituloActo4Img;
 }
 
 void mostrarTexto(String texto) {
-  fill(255);
+  fill(0, alphaImagen);
   textSize(20);
   textAlign(LEFT, CENTER);  // Alineado a la derecha
   textLeading(40);
