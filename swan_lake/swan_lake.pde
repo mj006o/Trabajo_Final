@@ -1,4 +1,4 @@
-// Importar librerías
+// Importar librerías de sonido
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
@@ -16,7 +16,7 @@ float alphaImagen = 0; // Transición fade in, nivel de transparencia de la imag
 boolean mostrandoPantallaTitulo = true; // Mostrar la pantalla del titulo del acto
 
 // Controlar si se debe aplicar el efecto de fade in en esa escena.
-boolean aplicarFade = true; 
+boolean aplicarFade = true;
 boolean necesitaFade(int acto, int escena) {
   // Lista de escenas que NO deben tener fade in
   return !(
@@ -33,7 +33,29 @@ boolean necesitaFade(int acto, int escena) {
 }
 
 // Variables imágenes
-PImage prologoImg, acto1Img, acto2Img, acto3Img, acto4Img, pantallaInicialImg, tituloActo1Img, tituloActo2Img, tituloActo3Img, tituloActo4Img;
+// Variables imágenes
+PImage prologoImg, acto1Img, acto2Img, acto3Img, acto4Img;
+PImage tituloActo1Img, tituloActo2Img, tituloActo3Img, tituloActo4Img;
+PImage pantallaInicialImg, pantallaFinImg;  
+
+// Variables botones
+
+// Para el boton de play
+PImage botonImg;
+float alphaBoton = 0;
+float botonX = 650, botonY = 500;
+float botonWidth, botonHeight;
+float escalaBoton = 1.0;
+float escalaBotonHover = 1.2; // Escala cuando el mouse está encima
+float botonOriginalWidth, botonOriginalHeight;
+
+// Para los botones de la pantalla final
+float botonReiniciarX = 460, botonReiniciarY = 500;
+float botonSalirX = 840, botonSalirY = 500;
+float escalaBotonReiniciar = 1.0;
+float escalaBotonSalir = 1.0;
+PImage botonReiniciarImg, botonSalirImg;
+boolean mostrandoPantallaFinal = false;
 
 // Arreglo de textos de cada escena
 String[][] textos = {
@@ -67,43 +89,134 @@ String[][] textos = {
 void setup() {
 
   size(1300, 700);
-  
+
   // Iniciar sonido
   minim = new Minim(this);
 
   // Cargar imágenes
   prologoImg = loadImage("Prologo mientras.png");
-  acto1Img = loadImage("boceto fondo acto 1.jpg");
-  acto2Img = loadImage("boceto fondo acto 2.jpg");
-  acto3Img = loadImage("boceto fondo acto 3.jpg");
-  acto4Img = loadImage("boceto fondo acto 4.jpg");
+  acto1Img = loadImage("acto 1.jpg");
+  acto2Img = loadImage("acto 2.jpg");
+  acto3Img = loadImage("acto 3.jpg");
+  acto4Img = loadImage("acto 4.jpg");
 
-  pantallaInicialImg = loadImage("boceto pantalla inicial.jpg");
-  tituloActo1Img = loadImage("boceto fondo acto 1 + titulo.jpg");
-  tituloActo2Img = loadImage("boceto fondo acto 2 + titulo.jpg");
-  tituloActo3Img = loadImage("boceto fondo acto 3 + titulo.jpg");
-  tituloActo4Img = loadImage("boceto fondo acto 4 + titulo.jpg");
+  pantallaInicialImg = loadImage("pantalla de inicio.jpg");
+  tituloActo1Img = loadImage("acto 1 + titulo.jpg");
+  tituloActo2Img = loadImage("acto 2 + titulo.jpg");
+  tituloActo3Img = loadImage("acto 3 + titulo.jpg");
+  tituloActo4Img = loadImage("acto 4 + titulo.jpg");
+  pantallaFinImg = loadImage("pantalla fin.jpg");
 
   mostrandoPantallaTitulo = true;  // Al inicio muestra la pantalla inicial
 
   // Empieza la música del acto actual
   cambiarMusicaDelActo();
+
+  botonImg = loadImage("boton play.png"); // Botón de play
+  // Guardar tamaño original para usarlo en escalado
+  botonOriginalWidth = botonImg.width;
+  botonOriginalHeight = botonImg.height;
+
+  botonReiniciarImg = loadImage("boton reiniciar.png");
+  botonSalirImg = loadImage("boton salir.png");
+
+  mostrandoPantallaTitulo = true;
+  alphaImagen = 0;
+  alphaBoton = 0;
 }
 
 void draw() {
   background(0);
 
-  if (mostrandoPantallaTitulo) {
-    // Mostrar imagen de título con fade in
-    PImage tituloImg = getImagenTitulo();
-    tint(255, alphaImagen); // Transparencia
-    image(tituloImg, 0, 0, width, height);
+  if (mostrandoPantallaFinal) {
+    // Pantalla final
+    image(pantallaFinImg, 0, 0, width, height);
 
-    if (aplicarFade && alphaImagen < 255) {
+    // Botón Reiniciar
+    float reiniciarW = 200 * escalaBotonReiniciar;
+    float reiniciarH = 200 * escalaBotonReiniciar;
+    float reiniciarXesquina = botonReiniciarX - reiniciarW / 2;
+    float reiniciarYesquina = botonReiniciarY - reiniciarH / 2;
+
+    if (mouseX > reiniciarXesquina && mouseX < reiniciarXesquina + reiniciarW &&
+      mouseY > reiniciarYesquina && mouseY < reiniciarYesquina + reiniciarH) {
+      escalaBotonReiniciar = lerp(escalaBotonReiniciar, 1.2, 0.2);
+    } else {
+      escalaBotonReiniciar = lerp(escalaBotonReiniciar, 1.0, 0.2);
+    }
+
+    image(botonReiniciarImg, reiniciarXesquina, reiniciarYesquina, reiniciarW, reiniciarH);
+
+    // Botón Salir
+    float salirW = 200 * escalaBotonSalir;
+    float salirH = 200 * escalaBotonSalir;
+    float salirXesquina = botonSalirX - salirW / 2;
+    float salirYesquina = botonSalirY - salirH / 2;
+
+    if (mouseX > salirXesquina && mouseX < salirXesquina + salirW &&
+      mouseY > salirYesquina && mouseY < salirYesquina + salirH) {
+      escalaBotonSalir = lerp(escalaBotonSalir, 1.2, 0.2);
+    } else {
+      escalaBotonSalir = lerp(escalaBotonSalir, 1.0, 0.2);
+    }
+
+    image(botonSalirImg, salirXesquina, salirYesquina, salirW, salirH);
+  } else if (mostrandoPantallaTitulo) {
+    // Pantalla de título por acto
+    PImage imgTitulo;
+
+    switch (acto) {
+    case 0:
+      imgTitulo = pantallaInicialImg;
+      break;
+    case 1:
+      imgTitulo = tituloActo1Img;
+      break;
+    case 2:
+      imgTitulo = tituloActo2Img;
+      break;
+    case 3:
+      imgTitulo = tituloActo3Img;
+      break;
+    case 4:
+      imgTitulo = tituloActo4Img;
+      break;
+    default:
+      imgTitulo = pantallaInicialImg;
+      break;
+    }
+
+    // Fade-in sincronizado
+    if (alphaImagen < 255) {
       alphaImagen += 2;
+      alphaBoton += 2;
+    }
+
+    alphaImagen = constrain(alphaImagen, 0, 255);
+    alphaBoton = constrain(alphaBoton, 0, 255);
+
+    tint(255, alphaImagen);
+    image(imgTitulo, 0, 0, width, height);
+
+    // Botón solo en acto 0
+    if (acto == 0) {
+      float botonWactual = 200 * escalaBoton;
+      float botonHactual = 200 * escalaBoton;
+      float botonXesquina = botonX - botonWactual / 2;
+      float botonYesquina = botonY - botonHactual / 2;
+
+      if (mouseX > botonXesquina && mouseX < botonXesquina + botonWactual &&
+        mouseY > botonYesquina && mouseY < botonYesquina + botonHactual) {
+        escalaBoton = lerp(escalaBoton, escalaBotonHover, 0.2);
+      } else {
+        escalaBoton = lerp(escalaBoton, 1.0, 0.2);
+      }
+
+      tint(255, alphaBoton);
+      image(botonImg, botonXesquina, botonYesquina, botonWactual, botonHactual);
     }
   } else {
-    // Mostrar imagen y texto de escena
+    // Mostrar escena del acto
     PImage imgActual = getImagenDelActo();
     tint(255, aplicarFade ? alphaImagen : 255);
     image(imgActual, 0, 0, width, height);
@@ -111,33 +224,83 @@ void draw() {
 
     if (aplicarFade && alphaImagen < 255) {
       alphaImagen += 2;
+      alphaImagen = constrain(alphaImagen, 0, 255);
     }
   }
 }
 
 void mousePressed() {
-  if (mostrandoPantallaTitulo) {
-    mostrandoPantallaTitulo = false;
-    alphaImagen = 0;
-    aplicarFade = true;
-    return;
-  }
+  if (mostrandoPantallaFinal) {
+    // Verificar clic en botón Reiniciar
+    float w = 200 * escalaBotonReiniciar;
+    float h = 200 * escalaBotonReiniciar;
+    float x = botonReiniciarX - w / 2;
+    float y = botonReiniciarY - h / 2;
 
-  // Avanzar escena cuando se hace clic
-  escena++;
-  if (escena >= textos[acto].length) {
-    acto++;
-    escena = 0;
+    if (mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h) {
+      // Reiniciar historia
+      acto = 0;
+      escena = 0;
+      mostrandoPantallaTitulo = true;
+      mostrandoPantallaFinal = false;
+      alphaImagen = 0;
+      alphaBoton = 0;
+      cambiarMusicaDelActo();
+      return;
+    }
 
-    if (acto > 4) acto = 0;  // Reiniciar si pasa del acto IV
+    // Verificar clic en botón Salir
+    x = botonSalirX - w / 2;
+    y = botonSalirY - h / 2;
 
-    cambiarMusicaDelActo();
-    mostrandoPantallaTitulo = true;
-    aplicarFade = true;
-    alphaImagen = 0;
+    if (mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h) {
+      exit(); // Cierra la ventana
+      return;
+    }
+  } else if (mostrandoPantallaTitulo) {
+
+    // Si estamos en el acto 0, solo permitir clic en el botón de inicio
+    if (acto == 0) {
+      float botonWactual = 200 * escalaBoton;
+      float botonHactual = 200 * escalaBoton;
+      float botonXesquina = botonX - botonWactual / 2;
+      float botonYesquina = botonY - botonHactual / 2;
+
+      boolean clicEnBoton = mouseX > botonXesquina && mouseX < botonXesquina + botonWactual &&
+        mouseY > botonYesquina && mouseY < botonYesquina + botonHactual;
+
+      if (clicEnBoton) {
+        mostrandoPantallaTitulo = false;
+        alphaImagen = 0;
+        aplicarFade = necesitaFade(acto, escena);
+      }
+    } else {
+      // Para actos 1 en adelante, cualquier clic entra en la escena
+      mostrandoPantallaTitulo = false;
+      alphaImagen = 0;
+      aplicarFade = necesitaFade(acto, escena);
+    }
   } else {
+    // Estamos dentro de la historia: avanzar a la siguiente escena
+    escena++;
+
+    if (escena >= textos[acto].length) {
+      // Terminaron las escenas del acto actual: pasar al siguiente acto
+      acto++;
+      escena = 0;
+
+      if (acto >= textos.length) {
+        // Llegamos al final de la historia: mostrar pantalla final
+        mostrandoPantallaFinal = true;
+        return;
+      }
+
+      cambiarMusicaDelActo();
+      mostrandoPantallaTitulo = true;
+    }
+
+    alphaImagen = 0;
     aplicarFade = necesitaFade(acto, escena);
-    alphaImagen = aplicarFade ? 0 : 255;
   }
 }
 
